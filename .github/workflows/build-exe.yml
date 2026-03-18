@@ -1,0 +1,42 @@
+name: Build Windows EXE
+
+on:
+push:
+branches: [ main ]
+workflow_dispatch:
+
+jobs:
+build:
+runs-on: windows-latest
+
+steps:
+- name: Checkout repository
+uses: actions/checkout@v4
+
+- name: Set up Python
+uses: actions/setup-python@v5
+with:
+python-version: "3.11"
+
+- name: Install dependencies
+run: |
+python -m pip install --upgrade pip setuptools wheel
+pip install pyinstaller==6.10.0 requests pandas duckdb PySide6 python-dateutil numpy
+
+- name: Build EXE with PyInstaller
+run: |
+pyinstaller --noconfirm --clean --onedir --windowed ^
+--name "ConnectEfileExtractor" ^
+--collect-all numpy ^
+--collect-all pandas ^
+--collect-all dateutil ^
+--collect-all PySide6 ^
+--exclude-module pytest ^
+connect_efile_extractor_query.py
+
+- name: Upload EXE folder as artifact
+uses: actions/upload-artifact@v4
+with:
+name: ConnectEfileExtractor-windows
+path: dist/ConnectEfileExtractor
+retention-days: 30
